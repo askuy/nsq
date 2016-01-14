@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"os"
 	"os/signal"
+	"runtime"
 	"strconv"
 	"strings"
 	"syscall"
@@ -140,6 +141,7 @@ func nsqFlagset() *flag.FlagSet {
 	flagSet.Bool("deflate", true, "enable deflate feature negotiation (client compression)")
 	flagSet.Int("max-deflate-level", 6, "max deflate compression level a client can negotiate (> values == > nsqd CPU usage)")
 	flagSet.Bool("snappy", true, "enable snappy feature negotiation (client compression)")
+	flagSet.Int("blockprofile", 100, "block profile rate")
 
 	return flagSet
 }
@@ -207,6 +209,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("ERROR: failed to persist metadata - %s", err.Error())
 	}
+	runtime.SetBlockProfileRate(opts.BlockProfile)
+
 	nsqd.Main()
 	<-signalChan
 	nsqd.Exit()
