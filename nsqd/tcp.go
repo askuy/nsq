@@ -12,7 +12,6 @@ type tcpServer struct {
 }
 
 func (p *tcpServer) Handle(clientConn net.Conn) {
-	p.ctx.nsqd.logf("TCP: new client(%s)", clientConn.RemoteAddr())
 
 	// The client should initialize itself by sending a 4 byte sequence indicating
 	// the version of the protocol that it intends to communicate, this will allow us
@@ -25,8 +24,11 @@ func (p *tcpServer) Handle(clientConn net.Conn) {
 	}
 	protocolMagic := string(buf)
 
-	p.ctx.nsqd.logf("CLIENT(%s): desired protocol magic '%s'",
-		clientConn.RemoteAddr(), protocolMagic)
+	if p.ctx.nsqd.getOpts().Verbose {
+		p.ctx.nsqd.logf("TCP: new client(%s)", clientConn.RemoteAddr())
+		p.ctx.nsqd.logf("CLIENT(%s): desired protocol magic '%s'",
+			clientConn.RemoteAddr(), protocolMagic)
+	}
 
 	var prot protocol.Protocol
 	switch protocolMagic {
