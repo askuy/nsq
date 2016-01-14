@@ -70,7 +70,6 @@ type Options struct {
 	DeflateEnabled  bool `flag:"deflate"`
 	MaxDeflateLevel int  `flag:"max-deflate-level"`
 	SnappyEnabled   bool `flag:"snappy"`
-	BlockProfile    int  `flag:"blockprofile"`
 
 	Logger logger
 }
