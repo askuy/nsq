@@ -14,7 +14,7 @@ import (
 	"github.com/nsqio/nsq/internal/auth"
 )
 
-const defaultBufferSize = 16 * 1024
+const defaultBufferSize = 8 * 1024
 
 const (
 	stateInit = iota
@@ -112,7 +112,7 @@ type clientV2 struct {
 func newClientV2(id int64, conn net.Conn, ctx *context) *clientV2 {
 	var identifier string
 	if conn != nil {
-		identifier, _, _ = net.SplitHostPort(conn.RemoteAddr().String())
+		identifier = conn.RemoteAddr().String()
 	}
 
 	c := &clientV2{
@@ -121,8 +121,8 @@ func newClientV2(id int64, conn net.Conn, ctx *context) *clientV2 {
 
 		Conn: conn,
 
-		Reader: bufio.NewReaderSize(conn, defaultBufferSize),
-		Writer: bufio.NewWriterSize(conn, defaultBufferSize),
+		Reader: newBufioReader(conn),
+		Writer: newBufioWriterSize(conn, defaultBufferSize),
 
 		OutputBufferSize:    defaultBufferSize,
 		OutputBufferTimeout: 250 * time.Millisecond,
@@ -434,7 +434,7 @@ func (c *clientV2) SetOutputBufferSize(desiredSize int) error {
 		if err != nil {
 			return err
 		}
-		c.Writer = bufio.NewWriterSize(c.Conn, size)
+		c.Writer = newBufioWriterSize(c.Conn, size)
 	}
 
 	return nil
@@ -496,8 +496,8 @@ func (c *clientV2) UpgradeTLS() error {
 	}
 	c.tlsConn = tlsConn
 
-	c.Reader = bufio.NewReaderSize(c.tlsConn, defaultBufferSize)
-	c.Writer = bufio.NewWriterSize(c.tlsConn, c.OutputBufferSize)
+	c.Reader = newBufioReader(c.tlsConn)
+	c.Writer = newBufioWriterSize(c.tlsConn, c.OutputBufferSize)
 
 	atomic.StoreInt32(&c.TLS, 1)
 
@@ -513,11 +513,11 @@ func (c *clientV2) UpgradeDeflate(level int) error {
 		conn = c.tlsConn
 	}
 
-	c.Reader = bufio.NewReaderSize(flate.NewReader(conn), defaultBufferSize)
+	c.Reader = newBufioReader(flate.NewReader(conn))
 
 	fw, _ := flate.NewWriter(conn, level)
 	c.flateWriter = fw
-	c.Writer = bufio.NewWriterSize(fw, c.OutputBufferSize)
+	c.Writer = newBufioWriterSize(fw, c.OutputBufferSize)
 
 	atomic.StoreInt32(&c.Deflate, 1)
 
@@ -533,8 +533,8 @@ func (c *clientV2) UpgradeSnappy() error {
 		conn = c.tlsConn
 	}
 
-	c.Reader = bufio.NewReaderSize(snappystream.NewReader(conn, snappystream.SkipVerifyChecksum), defaultBufferSize)
-	c.Writer = bufio.NewWriterSize(snappystream.NewWriter(conn), c.OutputBufferSize)
+	c.Reader = newBufioReader(snappystream.NewReader(conn, snappystream.SkipVerifyChecksum))
+	c.Writer = newBufioWriterSize(snappystream.NewWriter(conn), c.OutputBufferSize)
 
 	atomic.StoreInt32(&c.Snappy, 1)
 
