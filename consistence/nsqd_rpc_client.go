@@ -84,12 +84,16 @@ func (self *NsqdRpcClient) CallFast(method string, arg interface{}) (interface{}
 }
 
 func (self *NsqdRpcClient) CallWithRetry(method string, arg interface{}) (interface{}, error) {
-	for {
-		reply, err := self.dc.Call(method, arg)
+	retry := 0
+	var err error
+	var reply interface{}
+	for retry < 5 {
+		retry++
+		reply, err = self.dc.Call(method, arg)
 		if err != nil && err.(*gorpc.ClientError).Connection {
 			coordLog.Infof("rpc connection closed, error: %v", err)
-			err = self.Reconnect()
-			if err != nil {
+			connErr := self.Reconnect()
+			if connErr != nil {
 				return reply, err
 			}
 		} else {
@@ -99,6 +103,7 @@ func (self *NsqdRpcClient) CallWithRetry(method string, arg interface{}) (interf
 			return reply, err
 		}
 	}
+	return nil, err
 }
 
 func (self *NsqdRpcClient) NotifyTopicLeaderSession(epoch EpochType, topicInfo *TopicPartitionMetaInfo, leaderSession *TopicLeaderSession, joinSession string) *CoordErr {

@@ -1371,6 +1371,7 @@ retrypub:
 			clusterWriteErr = ErrTopicExiting
 			goto exitpub
 		}
+		time.Sleep(time.Second)
 	}
 	if needRefreshISR {
 		tcData = coord.GetData()
@@ -1453,7 +1454,7 @@ retrypub:
 
 		needRefreshISR = true
 		sleepTime := time.Millisecond * time.Duration(2<<retryCnt)
-		if sleepTime < MaxRetryWait {
+		if (sleepTime > 0) && (sleepTime < MaxRetryWait) {
 			time.Sleep(sleepTime)
 		} else {
 			time.Sleep(MaxRetryWait)

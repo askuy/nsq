@@ -55,11 +55,15 @@ func (self *NsqLookupRpcClient) Reconnect() error {
 }
 
 func (self *NsqLookupRpcClient) CallWithRetry(method string, arg interface{}) (interface{}, error) {
-	for {
-		reply, err := self.dc.Call(method, arg)
+	retry := 0
+	var err error
+	var reply interface{}
+	for retry < 5 {
+		retry++
+		reply, err = self.dc.Call(method, arg)
 		if err != nil && err.(*gorpc.ClientError).Connection {
-			err = self.Reconnect()
-			if err != nil {
+			connErr := self.Reconnect()
+			if connErr != nil {
 				return reply, err
 			}
 		} else {
@@ -69,6 +73,7 @@ func (self *NsqLookupRpcClient) CallWithRetry(method string, arg interface{}) (i
 			return reply, err
 		}
 	}
+	return nil, err
 }
 
 func (self *NsqLookupRpcClient) RequestJoinCatchup(topic string, partition int, nid string) *CoordErr {
