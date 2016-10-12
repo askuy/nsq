@@ -457,6 +457,7 @@ func (s *httpServer) nodeHandler(w http.ResponseWriter, req *http.Request, ps ht
 	if producer == nil {
 		return nil, http_api.Err{404, "NODE_NOT_FOUND"}
 	}
+	hostname_port := producer.Hostname + ":" + strconv.Itoa(producer.HTTPPort)
 
 	topicStats, _, err := s.ci.GetNSQDStats(clusterinfo.Producers{producer}, "", "channel-depth")
 	if err != nil {
@@ -475,12 +476,14 @@ func (s *httpServer) nodeHandler(w http.ResponseWriter, req *http.Request, ps ht
 
 	return struct {
 		Node          string                    `json:"node"`
+		HostnamePort  string                    `json:"hostname_port"`
 		TopicStats    []*clusterinfo.TopicStats `json:"topics"`
 		TotalMessages int64                     `json:"total_messages"`
 		TotalClients  int64                     `json:"total_clients"`
 		Message       string                    `json:"message"`
 	}{
 		Node:          node,
+		HostnamePort:  hostname_port,
 		TopicStats:    topicStats,
 		TotalMessages: totalMessages,
 		TotalClients:  totalClients,
