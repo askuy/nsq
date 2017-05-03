@@ -2,6 +2,8 @@
 
 This article is a extend of &lt;building client libraries&gt; in nsq.io, to provide some guidelines in building nsq client for redesigned nsq . The nsq client offers user ability to publish/consume message to nsq cluster,  it supports new features in redesigned nsq like HA, access conctrol, partition based ordered consumption as well. It is compatible with SPEC of client lib in nsqd.io and also extends to address features new in redesigned nsq.  Besides basic consume/publish abilities, following features provided by the nsq client, in order to collaborate with new features in redesigned nsq:
 
+The nsq client offers user ability to publish/consume message to nsq cluster,  it supports new features in redesigned nsq like HA, access conctrol, partition based ordered consumption as well. It is compatible with SPEC of client lib in nsqd.io and also extends to address features new in redesigned nsq.  Besides basic consume/publish abilities, following features provided by the nsq client, in order to collaborate with new features in redesigned nsq:
+
 * nsqd node discovery via launching request to nsqlookupd. 
 * write/read acess control for produce/consume message. 
 * partition based message consume/produce in order.
